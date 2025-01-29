@@ -20,7 +20,7 @@ from multiprocessing import Process, Event, Queue, Value
 import config
 
 # Serial connection to Arduino
-arduino = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 sleep(2)  # Wait for Arduino to initialize
 
 # Management of the Arduino for lighting control and motor movement.
@@ -191,7 +191,7 @@ class MotorDriver(Process):
                     continue
 
                 if self.order == "f":
-                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
+                    arduino.write(b'forward')  # Send command to move forward
                     self.turnFrames(self.numframes, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -200,7 +200,7 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "cf":
-                    arduino.write(b'MOTOR_CFWD\n')  # Send command for continuous forward
+                    arduino.write(b'forward')  # Send command for continuous forward
                     self.turn = True
                     self.continuousTurn("f")
                     # Motor stopped.
@@ -257,7 +257,7 @@ class MotorDriver(Process):
                 info(str(numframes) + " frames reverse")
 
         for i in range(numframes):
-            arduino.write(b'MOTOR_STEP\n')  # Send command to step the motor
+            arduino.write(b'forward')  # Send command to step the motor
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
@@ -278,7 +278,7 @@ class MotorDriver(Process):
 
         # Continuous turning is done by full frames.
         while self.turn:
-            arduino.write(b'MOTOR_STEP\n')  # Send command to step the motor
+            arduino.write(b'forward')  # Send command to step the motor
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
