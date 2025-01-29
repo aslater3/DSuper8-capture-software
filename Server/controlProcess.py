@@ -23,14 +23,7 @@ import re
 # Our configuration module.
 import config
 
-# Serial connection to Arduino
-arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 
-arduino_control = arduinoInstance(
-arduino
-)
-
-arduino_control.connect()
 sleep(2)  # Wait for Arduino to initialize
 
 # Management of the Arduino for lighting control and motor movement.
@@ -187,6 +180,14 @@ class arduinoInstance:
             self.serialProcess(None)
             time.sleep(1)
 
+# Serial connection to Arduino
+arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+
+arduino_control = arduinoInstance(
+arduino
+)
+
+arduino_control.connect()
 
 
 # Very simple class designed to advance frames in another process during
