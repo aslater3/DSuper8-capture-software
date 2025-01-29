@@ -11,51 +11,19 @@ Latest version: 20231130.
 """
 
 from time import sleep
-
-import pigpio
-
+import serial
 from logging import info
-
 from threading import Lock
-
 from multiprocessing import Process, Event, Queue, Value
 
 # Our configuration module.
 import config
 
-# BCM pin numbering is used.
-# Illumination control: pin 0-> off 1-> on.
-lightPin = config.lightPin
+# Serial connection to Arduino
+arduino = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+sleep(2)  # Wait for Arduino to initialize
 
-# Stepper motor control pins.
-# Motor activation: 0-> enabled 1-> disabled.
-sleepPin = config.sleepPin
-
-# Direction: 0-> backward 1-> forward.
-dirPin = config.dirPin
-
-# Spin pulses.
-pulsePin = config.pulsePin
-
-# They are used to activate and deactivate the motor.
-enabled = False
-disabled = True
-
-# Turn on, turn off:
-on = 1
-off = 0
-
-# Connection with the pigpio daemon.
-# pi = pigpio.pi('localhost', 8889)
-pi = pigpio.pi('127.0.0.1', 8889)
-
-# We configure pins as output.
-pi.set_mode(lightPin, pigpio.OUTPUT)
-pi.set_mode(sleepPin, pigpio.OUTPUT)
-pi.set_mode(dirPin, pigpio.OUTPUT)
-pi.set_mode(pulsePin, pigpio.OUTPUT)
-
-# Management of the GPIO port for lighting control and motor movement.
+# Management of the Arduino for lighting control and motor movement.
 class DS8Control():
 
     # Image capture event.
@@ -83,10 +51,10 @@ class DS8Control():
 
     # lightCheckbox
     def lightOn(self):
-        pi.write(lightPin, on)
+        arduino.write(b'LIGHT_ON\n')  # Send command to turn on the light
 
     def lightOff(self):
-        pi.write(lightPin, off)
+        arduino.write(b'LIGHT_OFF\n')  # Send command to turn off the light
 
     # fRevButton
     def motorRev(self):
@@ -141,16 +109,16 @@ class DS8Control():
         self.lightOff()
         self.motorStop()
         self.motorSleep()
-        pi.stop()
-        info("GPIO cleaning done")
+        arduino.close()
+        info("Serial connection closed")
 
     def motorWake(self):
-        pi.write(sleepPin, enabled)
+        arduino.write(b'MOTOR_WAKE\n')  # Send command to wake the motor
         info("Motor on")
         sleep(0.5)
 
     def motorSleep(self):
-        pi.write(sleepPin, disabled)
+        arduino.write(b'MOTOR_SLEEP\n')  # Send command to sleep the motor
         info("Motor off")
         sleep(0.5)
 
@@ -196,26 +164,8 @@ class MotorDriver(Process):
         self.svUpdateFrame = svUpdateFrame
         self.svSendStop = svSendStop
 
-        # Pulse wave identifier.
-        self.wid = 0
-
-        # Pulse chain.
-        self.chain = []
-
         # Number of steps required to move forward/backward one frame.
-        # For smooth operation we use 32 microsteps per step, has the
-        # disadvantage of slowness.
-        # Due to the wheel-pinion mesh, only half a revolution of the motor is
-        # needed to advance one frame.
         self.stepsPerFrame = config.stepsPerFrame
-
-        # Parameters used to create the pulse chain.
-        self.x = self.stepsPerFrame % 256
-        self.y = int(self.stepsPerFrame / 256)
-
-        # They are used to determine the direction of rotation of the motor.
-        self.backward = config.backward
-        self.forward = config.forward
 
         # Variable that contains the order.
         self.order = ""
@@ -226,39 +176,6 @@ class MotorDriver(Process):
         # Variable that determines the number of frames that the motor must
         # advance/reverse.
         self.numframes = 0
-
-        # Engine advance pulse chain.
-        self.createChain()
-
-        # Frame advance time in s.
-        self.tFrameAdv = config.stepsPerFrame * pi.wave_get_micros() * 1e-6
-
-    # Definition of the motor advance pulse chain.
-    def createChain(self):
-
-        # We create the pulses that make up the wave.
-        pul = []
-
-        # Time in us of a half-period of the wave.
-        tus = int(500000 / config.freq)
-
-        # pin ON
-        pul.append(pigpio.pulse(1 << pulsePin, 0, tus))
-
-        # pin OFF
-        pul.append(pigpio.pulse(0, 1 << pulsePin, tus))
-
-        # We clean pre-existing waves.
-        pi.wave_clear()
-
-        # We add the previously created pulses.
-        pi.wave_add_generic(pul)
-
-        # We create the wave.
-        self.wid = pi.wave_create()
-
-        # Chain of pulses required to advance one frame.
-        self.chain += [255, 0, self.wid, 255, 1, self.x, self.y]
 
     # Main control loop of motor rotation.
     def run(self):
@@ -274,7 +191,7 @@ class MotorDriver(Process):
                     continue
 
                 if self.order == "f":
-                    pi.write(dirPin, self.forward)
+                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     self.turnFrames(self.numframes, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -283,7 +200,7 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "cf":
-                    pi.write(dirPin, self.forward)
+                    arduino.write(b'MOTOR_CFWD\n')  # Send command for continuous forward
                     self.turn = True
                     self.continuousTurn("f")
                     # Motor stopped.
@@ -292,15 +209,12 @@ class MotorDriver(Process):
                     if self.svSendStop.value:
                         self.sendFrameMove("m")
 
-                # In order to eliminate the small error that originates from
-                # vertical scrolling when moving back frames, go back one
-                # additional frame and then advance one frame.
                 elif self.order == "cb":
-                    pi.write(dirPin, self.backward)
+                    arduino.write(b'MOTOR_CREV\n')  # Send command for continuous reverse
                     self.turn = True
                     self.continuousTurn("b")
                     sleep(0.5)
-                    pi.write(dirPin, self.forward)
+                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     self.turnFrames(1, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -309,10 +223,10 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "b":
-                    pi.write(dirPin, self.backward)
+                    arduino.write(b'MOTOR_REV\n')  # Send command to move reverse
                     self.turnFrames(self.numframes + 1, "b")
                     sleep(0.5)
-                    pi.write(dirPin, self.forward)
+                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     self.turnFrames(1, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -343,7 +257,7 @@ class MotorDriver(Process):
                 info(str(numframes) + " frames reverse")
 
         for i in range(numframes):
-            self.motorTurn()
+            arduino.write(b'MOTOR_STEP\n')  # Send command to step the motor
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
@@ -364,7 +278,7 @@ class MotorDriver(Process):
 
         # Continuous turning is done by full frames.
         while self.turn:
-            self.motorTurn()
+            arduino.write(b'MOTOR_STEP\n')  # Send command to step the motor
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
@@ -378,11 +292,6 @@ class MotorDriver(Process):
                     self.turn = False
                 else:
                     continue
-
-    def motorTurn(self):
-        # We send the chain for the advance of a frame.
-        pi.wave_chain(self.chain)
-        sleep(self.tFrameAdv)
 
     # Sending forward or backward frame movement signal.
     def sendFrameMove(self, flag):
