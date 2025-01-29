@@ -15,6 +15,10 @@ import serial
 from logging import info
 from threading import Lock
 from multiprocessing import Process, Event, Queue, Value
+import time
+import datetime
+import re
+
 
 # Our configuration module.
 import config
@@ -122,9 +126,67 @@ class DS8Control():
         info("Motor off")
         sleep(0.5)
 
+
+
+
+class arduinoInstance:
+    ready = False
+    currentFrame = 0
+    varPattern = r"\{(.*?)\}"
+
+    def __init__(self, serial_port: Serial):
+        self.serial_port = serial_port
+        self.commandInProgress = False
+
+    def serialProcess(self, write_value: str):
+        time.sleep(0.1)
+        data = None
+        while self.serial_port.in_waiting > 0:
+            data = self.serial_port.readline()
+            if b"finished command" in data:
+                print("Arduino Has Finished Executing Command - Ready For Next")
+                self.commandInProgress = False
+            if b"Cur Frame" in data:
+                regex = re.search(self.varPattern, str(data))
+                self.currentFrame = regex.group(1)
+                info(
+                    "Current Frame is now: {} @ {}".format(
+                        self.currentFrame, datetime.datetime.now()
+                    )
+                )
+
+                print(
+                    "Frame has advance current frame is now: {}".format(
+                        self.currentFrame
+                    )
+                )
+            if b"Ready" in data and not self.ready:
+                self.ready = True
+                print("Arduino is now connected on: {}".format(self.serial_port.port))
+            elif b"Ready" in data and self.ready:
+                print("Arduino has rebooted - terminating")
+                exit()
+
+        if write_value != None:
+            self.serial_port.write(bytes(write_value, "utf-8"))
+            self.commandInProgress = True
+        if data != None:
+            return data
+        else:
+            return -1
+
+    def connect(self):
+        while not self.ready:
+            print("Waiting for Arduino to connect")
+            self.serialProcess(None)
+            time.sleep(1)
+
+
+
 # Very simple class designed to advance frames in another process during
 # captures, so a different kernel can handle it and will not delay the
 # photograph, or vice versa.
+
 class MotorDriver(Process):
 
     # Photo capture event.
@@ -180,6 +242,13 @@ class MotorDriver(Process):
     # Main control loop of motor rotation.
     def run(self):
         info("Running motor turn process")
+
+        arduino_control = arduinoInstance(
+        serial.Serial(arduino)
+    )
+        
+        arduino.connect()
+
         try:
             while not self.motExitEvent.is_set():
 
