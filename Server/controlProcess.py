@@ -244,7 +244,7 @@ class MotorDriver(Process):
         info("Running motor turn process")
 
         arduino_control = arduinoInstance(
-        serial.Serial(arduino)
+        arduino
     )
         
         arduino.connect()
