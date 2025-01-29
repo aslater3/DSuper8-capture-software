@@ -260,7 +260,13 @@ class MotorDriver(Process):
                     continue
 
                 if self.order == "f":
-                    arduino.write(b'forward')  # Send command to move forward
+                    #arduino.write(b'forward')  # Send command to move forward
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turnFrames(self.numframes, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -269,7 +275,13 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "cf":
-                    arduino.write(b'forward')  # Send command for continuous forward
+                    #arduino.write(b'forward')  # Send command for continuous forward
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turn = True
                     self.continuousTurn("f")
                     # Motor stopped.
@@ -279,11 +291,23 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "cb":
-                    arduino.write(b'MOTOR_CREV\n')  # Send command for continuous reverse
+                    #arduino.write(b'MOTOR_CREV\n')  # Send command for continuous reverse
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turn = True
                     self.continuousTurn("b")
                     sleep(0.5)
-                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
+                    #arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turnFrames(1, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -292,10 +316,22 @@ class MotorDriver(Process):
                         self.sendFrameMove("m")
 
                 elif self.order == "b":
-                    arduino.write(b'MOTOR_REV\n')  # Send command to move reverse
+                    #arduino.write(b'MOTOR_REV\n')  # Send command to move reverse
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turnFrames(self.numframes + 1, "b")
                     sleep(0.5)
-                    arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
+                   # arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
+                    command = "forward"
+                    value = arduino.serialProcess(command)
+                    print("SENT Command: {}".format(command))
+                    info(
+                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+                    )
                     self.turnFrames(1, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -326,7 +362,13 @@ class MotorDriver(Process):
                 info(str(numframes) + " frames reverse")
 
         for i in range(numframes):
-            arduino.write(b'forward')  # Send command to step the motor
+            #arduino.write(b'forward')  # Send command to step the motor
+            command = "forward"
+            value = arduino.serialProcess(command)
+            print("SENT Command: {}".format(command))
+            info(
+                "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+            )
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
@@ -347,7 +389,13 @@ class MotorDriver(Process):
 
         # Continuous turning is done by full frames.
         while self.turn:
-            arduino.write(b'forward')  # Send command to step the motor
+            #arduino.write(b'forward')  # Send command to step the motor
+            command = "forward"
+            value = arduino.serialProcess(command)
+            print("SENT Command: {}".format(command))
+            info(
+                "Sent Command: {} @ {}".format(command, datetime.datetime.now())
+            )
             if direction == "f" and self.svUpdateFrame.value:
                 self.sendFrameMove("c")
             elif direction == "b" and self.svUpdateFrame.value:
