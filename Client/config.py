@@ -23,7 +23,7 @@ from logging import info
 
 # IP address of the server.
 # server_ip = "HAL9005.maodog.es"
-server_ip = "192.168.1.4"
+server_ip = "192.168.0.180"
 
 # GUI theme.
 # GUITheme = "Light"
@@ -33,15 +33,15 @@ GUITheme = "Dark"
 # Comment those that do not apply.
 
 # Base directory for configuration files and capture folder.
-defaultFolder = "/home/mao/Super8"
+defaultFolder = "/Users/andy/Documents/flmscans/Super8"
 # defaultFolder = "C:/Users/mao/Super8"
 
 # Directory where the generated image files will be saved.
-capFolder = "/home/mao/Super8"
+capFolder = "/Users/andy/Documents/flmscans"
 # capFolder = "C:/Users/mao/Super8"
 
 # File to save settings.
-configFile = "/home/mao/Super8/DSuper8.conf"
+configFile = "/Users/andy/Documents/flmscans/super8/config.conf"
 # configFile = "C:/Users/mao/Super8/DSuper8.conf"
 
 # Camera custom color gains.
