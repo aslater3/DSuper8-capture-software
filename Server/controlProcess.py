@@ -262,7 +262,7 @@ class MotorDriver(Process):
                 if self.order == "f":
                     #arduino.write(b'forward')  # Send command to move forward
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -277,7 +277,7 @@ class MotorDriver(Process):
                 elif self.order == "cf":
                     #arduino.write(b'forward')  # Send command for continuous forward
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -293,7 +293,7 @@ class MotorDriver(Process):
                 elif self.order == "cb":
                     #arduino.write(b'MOTOR_CREV\n')  # Send command for continuous reverse
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -303,7 +303,7 @@ class MotorDriver(Process):
                     sleep(0.5)
                     #arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -318,7 +318,7 @@ class MotorDriver(Process):
                 elif self.order == "b":
                     #arduino.write(b'MOTOR_REV\n')  # Send command to move reverse
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -327,7 +327,7 @@ class MotorDriver(Process):
                     sleep(0.5)
                    # arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     command = "forward"
-                    value = arduino.serialProcess(command)
+                    value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -364,7 +364,7 @@ class MotorDriver(Process):
         for i in range(numframes):
             #arduino.write(b'forward')  # Send command to step the motor
             command = "forward"
-            value = arduino.serialProcess(command)
+            value = arduino_control.serialProcess(command)
             print("SENT Command: {}".format(command))
             info(
                 "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -391,7 +391,7 @@ class MotorDriver(Process):
         while self.turn:
             #arduino.write(b'forward')  # Send command to step the motor
             command = "forward"
-            value = arduino.serialProcess(command)
+            value = arduino_control.serialProcess(command)
             print("SENT Command: {}".format(command))
             info(
                 "Sent Command: {} @ {}".format(command, datetime.datetime.now())
