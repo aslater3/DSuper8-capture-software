@@ -134,7 +134,7 @@ class arduinoInstance:
     currentFrame = 0
     varPattern = r"\{(.*?)\}"
 
-    def __init__(self, serial_port: Serial):
+    def __init__(self, serial_port: serial):
         self.serial_port = serial_port
         self.commandInProgress = False
 
