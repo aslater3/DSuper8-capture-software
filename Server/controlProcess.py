@@ -25,6 +25,12 @@ import config
 
 # Serial connection to Arduino
 arduino = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+
+arduino_control = arduinoInstance(
+arduino
+)
+
+arduino_control.connect()
 sleep(2)  # Wait for Arduino to initialize
 
 # Management of the Arduino for lighting control and motor movement.
@@ -243,11 +249,6 @@ class MotorDriver(Process):
     def run(self):
         info("Running motor turn process")
 
-        arduino_control = arduinoInstance(
-        arduino
-    )
-        
-        arduino_control.connect()
 
         try:
             while not self.motExitEvent.is_set():
