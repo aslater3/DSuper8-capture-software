@@ -247,7 +247,7 @@ class MotorDriver(Process):
         arduino
     )
         
-        arduino.connect()
+        arduino_control.connect()
 
         try:
             while not self.motExitEvent.is_set():
