@@ -141,7 +141,7 @@ class arduinoInstance:
         data = None
 
         while self.commandInProgress:
-            print("waiting for arduino update on command progress")
+            print("waiting for arduino update on command progress", end="\r")
             while self.serial_port.in_waiting > 0:
                 data = self.serial_port.readline()
                 if b"finished command" in data:
@@ -162,6 +162,8 @@ class arduinoInstance:
                             self.currentFrame
                         )
                     )
+                time.sleep(0.1)
+
         while self.serial_port.in_waiting > 0:
             data = self.serial_port.readline()
 
@@ -292,6 +294,7 @@ class MotorDriver(Process):
                     # arduino.write(b'forward')  # Send command for continuous forward
                     command = "forward"
                     # value = arduino_control.serialProcess(command)
+                    print("some how got into continuous forward")
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -378,6 +381,7 @@ class MotorDriver(Process):
         for i in range(numframes):
             # arduino.write(b'forward')  # Send command to step the motor
             command = "forward"
+            print(numframes)
             value = arduino_control.serialProcess(command)
             print("SENT Command: {}".format(command))
             info("Sent Command: {} @ {}".format(command, datetime.datetime.now()))
