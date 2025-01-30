@@ -140,29 +140,37 @@ class arduinoInstance:
     def serialProcess(self, write_value: str):
         time.sleep(0.1)
         data = None
-        while self.serial_port.in_waiting > 0:
-            data = self.serial_port.readline()
-            if b"finished command" in data:
-                print("Arduino Has Finished Executing Command - Ready For Next")
-                self.commandInProgress = False
-            if b"Cur Frame" in data:
-                regex = re.search(self.varPattern, str(data))
-                self.currentFrame = regex.group(1)
-                info(
-                    "Current Frame is now: {} @ {}".format(
-                        self.currentFrame, datetime.datetime.now()
-                    )
-                )
 
-                print(
-                    "Frame has advance current frame is now: {}".format(
-                        self.currentFrame
+        while self.commandInProgress:
+            print("waiting for arduino update on command progress")
+            while self.serial_port.in_waiting > 0:
+                data = self.serial_port.readline()
+                if b"finished command" in data:
+                    print("Arduino Has Finished Executing Command - Ready For Next")
+                    self.commandInProgress = False
+
+
+                if b"Cur Frame" in data:
+                    regex = re.search(self.varPattern, str(data))
+                    self.currentFrame = regex.group(1)
+                    info(
+                        "Current Frame is now: {} @ {}".format(
+                            self.currentFrame, datetime.datetime.now()
+                        )
                     )
-                )
-            if b"Ready" in data and not self.ready:
+
+                    print(
+                        "Frame has advance current frame is now: {}".format(
+                            self.currentFrame
+                        )
+                    )
+        while self.serial_port.in_waiting > 0:
+                data = self.serial_port.readline()
+
+        if b"Ready" in data and not self.ready:
                 self.ready = True
                 print("Arduino is now connected on: {}".format(self.serial_port.port))
-            elif b"Ready" in data and self.ready:
+        elif b"Ready" in data and self.ready:
                 print("Arduino has rebooted - terminating")
                 exit()
 
@@ -264,7 +272,7 @@ class MotorDriver(Process):
                 if self.order == "f":
                     #arduino.write(b'forward')  # Send command to move forward
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                   # value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -279,7 +287,7 @@ class MotorDriver(Process):
                 elif self.order == "cf":
                     #arduino.write(b'forward')  # Send command for continuous forward
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                   # value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -295,7 +303,7 @@ class MotorDriver(Process):
                 elif self.order == "cb":
                     #arduino.write(b'MOTOR_CREV\n')  # Send command for continuous reverse
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                    # value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -305,7 +313,7 @@ class MotorDriver(Process):
                     sleep(0.5)
                     #arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                  #  value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -320,7 +328,7 @@ class MotorDriver(Process):
                 elif self.order == "b":
                     #arduino.write(b'MOTOR_REV\n')  # Send command to move reverse
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                   # value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
@@ -329,7 +337,7 @@ class MotorDriver(Process):
                     sleep(0.5)
                    # arduino.write(b'MOTOR_FWD\n')  # Send command to move forward
                     command = "forward"
-                    value = arduino_control.serialProcess(command)
+                  #  value = arduino_control.serialProcess(command)
                     print("SENT Command: {}".format(command))
                     info(
                         "Sent Command: {} @ {}".format(command, datetime.datetime.now())
