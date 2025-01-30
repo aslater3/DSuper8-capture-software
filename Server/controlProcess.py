@@ -139,6 +139,7 @@ class arduinoInstance:
     def serialProcess(self, write_value: str):
         time.sleep(0.1)
         data = None
+        print("starting to process arduino command")
 
         while self.commandInProgress:
             print("waiting for arduino update on command progress", end="\r")
@@ -158,7 +159,7 @@ class arduinoInstance:
                     )
 
                     print(
-                        "Frame has advance current frame is now: {}".format(
+                        "Frame has advanced current frame is now: {}".format(
                             self.currentFrame
                         )
                     )
@@ -177,6 +178,7 @@ class arduinoInstance:
         if write_value != None:
             self.serial_port.write(bytes(write_value, "utf-8"))
             self.commandInProgress = True
+            self.serialProcess(None)
         if data != None:
             return data
         else:
@@ -279,10 +281,7 @@ class MotorDriver(Process):
                     # arduino.write(b'forward')  # Send command to move forward
                     command = "forward"
                     # value = arduino_control.serialProcess(command)
-                    print("SENT Command: {}".format(command))
-                    info(
-                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
-                    )
+
                     self.turnFrames(self.numframes, "f")
                     # Motor stopped.
                     info("Motor stop")
@@ -295,10 +294,7 @@ class MotorDriver(Process):
                     command = "forward"
                     # value = arduino_control.serialProcess(command)
                     print("some how got into continuous forward")
-                    print("SENT Command: {}".format(command))
-                    info(
-                        "Sent Command: {} @ {}".format(command, datetime.datetime.now())
-                    )
+
                     self.turn = True
                     self.continuousTurn("f")
                     # Motor stopped.
